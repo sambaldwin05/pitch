@@ -1,6 +1,16 @@
+'''
+
+NEXT STEPS
+
+Build logic for bidding.
+
+Build logic for assigning the winner of the trick.
+
+'''
+
+
 import os
 import sys
-import random
 
 from Tkinter import *
 
@@ -8,9 +18,9 @@ from gui import *
 from cards import *
 
 
-# application init section
+# Application init section.
 
-# app display settings
+# App display settings.
 canvas_width = 800
 canvas_height = 600
 
@@ -20,94 +30,87 @@ commands_height = canvas_height
 ButtonFrame.width = commands_width
 ButtonFrame.height = commands_height
 
-# create the tkinter window object
+# Create the tkinter window object.
 top = Tk()
 
-# give the buttonframe class a reference to the window
-# this is used in screen updates
+# Give the buttonframe class a reference to the window
+# this is used in screen updates.
 ButtonFrame.TK_ROOT = top
 
-# disable resizing
+# Disable resizing.
 top.resizable(width=False, height=False)
 
-# create the container frame to hold all the widgets
+# Create the container frame to hold all the widgets.
 container = Frame(top, width=(canvas_width + commands_width), 
-                        height=canvas_height, bg='#444444')
+                  height=canvas_height, bg='#444444')
 
-# make the container a fixed size and display it
+# Make the container a fixed size and display it.
 container.pack_propagate(0)
 container.pack()
 
-# create the canvas
+# Create the canvas.
 canvas = Canvas(container, width=canvas_width, height=canvas_height, 
-                            bg='#00aa03', bd=0, highlightthickness=0)
+                bg='#00aa03', bd=0, highlightthickness=0)
 
 status_text = StringVar()
 status_text.set('This is the status bar.')
 
-# draw the canvas
+# Draw the canvas.
 canvas.pack(side=LEFT)
 
-# set up the status bar
+# Set up the status bar.
 status_bar = Message(top, textvariable=status_text, 
-                        width=canvas_width + commands_width, anchor=W)
+                     width=canvas_width + commands_width, anchor=W)
 
 status_bar.pack(side=LEFT)
 
 # BUTTONS SECTION
 
-# build out helper functions
+# Build out helper functions.
 def quit_app():
     print 'You have quit pitch.  Quitter.'
     sys.exit(0)
 
-# gotta keep a reference - this will become
-# part of the deck class (probably)
-deck = []
-
 def deal():
 
-    # build a deck
-    for suit in Card.SUIT_OPTIONS.keys():
-        for value in Card.VALUE_OPTIONS.keys():
-            card = Card(suit, value)
-            deck.append(card)
-    
-    random.shuffle(deck)
+    game_state.deal_hands(2)
 
-    # draw each card in a random space
-    i = 1
-    for card in deck:
-        card.draw((random.randint(0, canvas_width - 80), 
-            random.randint(0, canvas_height - 100)))
-        print '%d: %s of %s' % (i, Card.VALUE_OPTIONS[card.value],
-            Card.SUIT_OPTIONS[card.suit])
-        i += 1
+    # Disable the deal button.
+    commands_frame.disable_button_by_text('Deal')
 
-    text = ('Dealing a deck of 52 cards in random order.')
+    text = 'Dealing a deck of 52 cards in random order.'
     status_text.set(text)
 
-# assign the container to be the parent widget of all the button frames
+# Assign the container to be the parent widget of all the button frames.
 ButtonFrame.PARENT_WIDGET = container
 
-# set up the top level buttons frame on the right
+# Set our class level variables.
+Card.CANVAS = canvas
+GameState.STATUS_TEXT = status_text
+Card.IMG_PATH = os.path.abspath('images/')
+
+# Initialize some game state - or should that be done 
+# with the first click of the deal button?
+game_state = GameState(canvas_width, canvas_height)
+
+# Set up the top level buttons frame on the right.
 commands_frame = ButtonFrame('PITCH')
 
 commands_frame.add_button('Deal', deal)
 commands_frame.add_button('Quit', quit_app)
 
-# draw the main frame
+# Draw the main frame.
 commands_frame.show()
+
+bid_frame = ButtonFrame('Bid Amount')
+bid_frame.add_button('Bid 2', lambda: game_state.set_player_bid(game_state.bid_position, 2))
+bid_frame.add_button('Bid 3', lambda: game_state.set_player_bid(game_state.bid_position, 3))
+bid_frame.add_button('Bid 4', lambda: game_state.set_player_bid(game_state.bid_position, 4))
+bid_frame.add_button('Pass ', lambda: game_state.set_player_bid(game_state.bid_position, None))
 
 # END BUTTONS SECTION
 
-# Set our class level variables
-Card.CANVAS = canvas
-Card.IMG_PATH = os.path.abspath('images/')
-
-# initialize some game state - maybe?
-# should that be done with the first click of the deal button?
+GameState.COMMANDS_FRAME = commands_frame
+GameState.BID_FRAME = bid_frame
 
 top.mainloop()
-
-
