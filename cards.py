@@ -59,6 +59,7 @@ class Card:
         self.player_hand = None
 
     def game_value(self):
+        # Return the game value of this card.
         game_value = self.value - 10
         if game_value == 0:
             game_value = 10
@@ -94,8 +95,9 @@ class Card:
         self.photo_image = None
 
     def card_name(self):
-        return '%s of %s' % (Card.VALUE_OPTIONS[self.value],
-                             Card.SUIT_OPTIONS[self.suit])
+        return '{0} of {1}'.format(
+            Card.VALUE_OPTIONS[self.value], Card.SUIT_OPTIONS[self.suit]
+        )
 
     def _play_card(self):
         
@@ -125,7 +127,8 @@ class Card:
 
         # Create the gif image and assign it to the shape.
         self.photo_image = PhotoImage(
-            file=os.path.join(Card.IMG_PATH, img_filename))
+            file=os.path.join(Card.IMG_PATH, img_filename)
+        )
         Card.CANVAS.itemconfig(self.image_shape, image=self.photo_image)
 
     def show(self):
@@ -139,7 +142,7 @@ class Card:
         Card.CANVAS.itemconfig(self.image_shape, image=self.photo_image)
 
     def toggle(self):
-        # Flips the card over.  Assumes the card has already been drawn.
+        ''' Flips the card over.  Assumes the card has already been drawn. '''
 
         # Create the filename.
         if self.face_up == True:
@@ -149,7 +152,8 @@ class Card:
 
         # Create the gif image and assign it to the shape.
         self.photo_image = PhotoImage(
-            file=os.path.join(Card.IMG_PATH, img_filename))
+            file=os.path.join(Card.IMG_PATH, img_filename)
+        )
         Card.CANVAS.itemconfig(self.image_shape, image=self.photo_image)
 
         # Toggle the face_up value.
@@ -165,12 +169,10 @@ class Card:
 
 class Deck:
 
-    # Constructor.
     def __init__(self):
         self.reset_deck()
 
     def reset_deck(self):
-
         # Build a deck of cards.
         self.cards = []
         for suit in Card.SUIT_OPTIONS.keys():
@@ -189,7 +191,6 @@ class PlayerHand:
 
     CARD_SPACING = 25
 
-    # Constructor.
     def __init__(self, player_name, upper_left_coords, game_state):
 
         # Reference to the game_state.
@@ -209,7 +210,6 @@ class PlayerHand:
         card.player_hand = self
 
     def play_card(self, card):
-
         # Make sure this card is in the hand.
         assert card in self.cards
 
@@ -249,14 +249,11 @@ class PlayerHand:
                 x += PlayerHand.CARD_SPACING
 
     def reset_hand(self):
-        # Empty list to track cards in the hand.
+        # Empty out the cards taken and the cards in the hand.
         self.cards = []
-
-        # Empty list to track cards taken.
         self.taken_cards = []
 
     def has_suit(self, suit):
-        
         # Make sure this is a valid suit.
         assert suit in Card.SUIT_OPTIONS
 
@@ -271,7 +268,6 @@ class PlayerHand:
 class Trick:
     ''' Class that holds the played cards in the middle. '''
 
-    # Constructor.
     def __init__(self, canvas_width, canvas_height, game_state):
 
         # Store a reference to the game state.
@@ -308,7 +304,6 @@ class Trick:
         self.game_state.players[lead_position].show_cards()
 
     def evaluate_trick(self):
-        
         # Make sure the trick is really over.
         assert None not in self.cards
         assert self.game_state.trump is not None
@@ -398,13 +393,14 @@ class Trick:
         return False
 
     def play_card(self, card):
-        
         # Grab the player.
         player = card.player_hand
 
         # Make sure this is a legal play, complain and break out if not.
         if not self.is_legal_play(card):
-            tk_msg_box.showinfo('Illegal', 'Illegal play.  Choose another card.')
+            tk_msg_box.showinfo(
+                'Illegal', 'Illegal play.  Choose another card.'
+            )
             return
 
         print card.suit, card.value
@@ -460,9 +456,7 @@ class GameState:
     COMMANDS_FRAME = None
     BID_FRAME = None
 
-    # Constructor.
     def __init__(self, canvas_width, canvas_height):
-
         # Create a reusable trick.
         self.trick = Trick(canvas_width, canvas_height, self)
 
@@ -558,9 +552,12 @@ class GameState:
         for i in range(0, len(self.score)):
             self.score[i] += points[i]
             print 'Team {0} Hand Score: {1}'.format(i + 1, points[i])
+        print '--------------'
+        for i in range(0, len(self.score)):
             print 'Team {0} Total Score: {1}'.format(i + 1, self.score[i])
 
         # TODO Check if victory conditions have been met.
+
 
         # Deal another hand if game continues.
         self.dealer_position = (self.dealer_position + 1) % 4
