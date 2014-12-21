@@ -570,8 +570,9 @@ class GameState:
         print 'Player', player_index + 1, 'bids', bid
 
         if self.dealer_position == player_index:
-            msg_text = '{0} Bid taken by Player {1}'.format(self.bid[1], 
-                                                            self.bid[0] + 1)
+            msg_text = '{0} Bid taken by Player {1}'.format(
+                self.bid[1], self.bid[0] + 1
+            )
 
             # Start new trick.
             self.BID_FRAME.hide()
@@ -596,7 +597,7 @@ class GameState:
         for card in self.players[player_index].cards:
             card.disable_click()
 
-        # Figure out the minimum bid
+        # Figure out the minimum bid.
         if self.bid[1] == None:
             min_bid = 2
         elif player_index == self.dealer_position:
@@ -614,13 +615,14 @@ class GameState:
         if player_index != self.dealer_position:
             self.BID_FRAME.enable_button(3)
         elif self.bid[1] == None:
+            self.BID_FRAME.disable_button(3)
             print 'Dealer cannot pass.'
 
-        self.BID_FRAME.frame['text'] = 'Player {0} Bid'.format(self.bid_position + 1)
+        self.BID_FRAME.frame['text'] = \
+            'Player {0} Bid'.format(self.bid_position + 1)
         self.BID_FRAME.show()
 
     def deal_hands(self, dealer_position):
-
         # Clear out the previous hand.
         self.clear_hands()
 
