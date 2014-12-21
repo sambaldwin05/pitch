@@ -72,7 +72,6 @@ def quit_app():
     sys.exit(0)
 
 def deal():
-
     game_state.deal_hands(2)
 
     # Disable the deal button.
@@ -103,10 +102,18 @@ commands_frame.add_button('Quit', quit_app)
 commands_frame.show()
 
 bid_frame = ButtonFrame('Bid Amount')
-bid_frame.add_button('Bid 2', lambda: game_state.set_player_bid(game_state.bid_position, 2))
-bid_frame.add_button('Bid 3', lambda: game_state.set_player_bid(game_state.bid_position, 3))
-bid_frame.add_button('Bid 4', lambda: game_state.set_player_bid(game_state.bid_position, 4))
-bid_frame.add_button('Pass ', lambda: game_state.set_player_bid(game_state.bid_position, None))
+bid_frame.add_button(
+    'Bid 2', lambda: game_state.set_player_bid(game_state.bid_position, 2)
+)
+bid_frame.add_button(
+    'Bid 3', lambda: game_state.set_player_bid(game_state.bid_position, 3)
+)
+bid_frame.add_button(
+    'Bid 4', lambda: game_state.set_player_bid(game_state.bid_position, 4)
+)
+bid_frame.add_button(
+    'Pass ', lambda: game_state.set_player_bid(game_state.bid_position, None)
+)
 
 # END BUTTONS SECTION
 
