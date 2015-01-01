@@ -12,7 +12,7 @@ Build logic for assigning the winner of the trick.
 import os
 import sys
 
-from Tkinter import *
+import Tkinter as tk
 
 from gui import *
 from cards import *
@@ -25,23 +25,20 @@ canvas_width = 800
 canvas_height = 600
 
 commands_width = 120
-commands_height = canvas_height
-
-ButtonFrame.width = commands_width
-ButtonFrame.height = commands_height
+commands_height = 300
 
 # Create the tkinter window object.
-top = Tk()
+top = tk.Tk()
 
 # Give the buttonframe class a reference to the window
 # this is used in screen updates.
-ButtonFrame.TK_ROOT = top
+GuiFrame.TK_ROOT = top
 
 # Disable resizing.
 top.resizable(width=False, height=False)
 
 # Create the container frame to hold all the widgets.
-container = Frame(top, width=(canvas_width + commands_width), 
+container = tk.Frame(top, width=(canvas_width + commands_width), 
                   height=canvas_height, bg='#444444')
 
 # Make the container a fixed size and display it.
@@ -49,20 +46,35 @@ container.pack_propagate(0)
 container.pack()
 
 # Create the canvas.
-canvas = Canvas(container, width=canvas_width, height=canvas_height, 
-                bg='#00aa03', bd=0, highlightthickness=0)
+canvas = tk.Canvas(container, width=canvas_width, height=canvas_height, 
+                   bg='#00aa03', bd=0, highlightthickness=0)
 
-status_text = StringVar()
+status_text = tk.StringVar()
 status_text.set('This is the status bar.')
 
 # Draw the canvas.
-canvas.pack(side=LEFT)
+canvas.pack(side=tk.LEFT)
 
 # Set up the status bar.
-status_bar = Message(top, textvariable=status_text, 
-                     width=canvas_width + commands_width, anchor=W)
+status_bar = tk.Message(top, textvariable=status_text, 
+                        width=canvas_width + commands_width, anchor=tk.W)
 
-status_bar.pack(side=LEFT)
+status_bar.pack(side=tk.LEFT)
+
+
+# Assign the container to be the parent widget of all the button frames.
+GuiFrame.PARENT_WIDGET = container
+
+# Set our class level variables.
+Card.CANVAS = canvas
+GameState.STATUS_TEXT = status_text
+Card.IMG_PATH = os.path.abspath('images/')
+
+# Initialize our game state.
+game_state = GameState(canvas_width, canvas_height)
+
+# Set up the top level buttons frame on the right.
+commands_frame = ButtonFrame('PITCH', height=commands_height)
 
 # BUTTONS SECTION
 
@@ -80,20 +92,6 @@ def deal():
     text = 'Dealing a deck of 52 cards in random order.'
     status_text.set(text)
 
-# Assign the container to be the parent widget of all the button frames.
-ButtonFrame.PARENT_WIDGET = container
-
-# Set our class level variables.
-Card.CANVAS = canvas
-GameState.STATUS_TEXT = status_text
-Card.IMG_PATH = os.path.abspath('images/')
-
-# Initialize some game state - or should that be done 
-# with the first click of the deal button?
-game_state = GameState(canvas_width, canvas_height)
-
-# Set up the top level buttons frame on the right.
-commands_frame = ButtonFrame('PITCH')
 
 commands_frame.add_button('Deal', deal)
 commands_frame.add_button('Quit', quit_app)
@@ -101,7 +99,7 @@ commands_frame.add_button('Quit', quit_app)
 # Draw the main frame.
 commands_frame.show()
 
-bid_frame = ButtonFrame('Bid Amount')
+bid_frame = ButtonFrame('Bid Amount', height=commands_height)
 bid_frame.add_button(
     'Bid 2', lambda: game_state.set_player_bid(game_state.bid_position, 2)
 )
@@ -117,7 +115,15 @@ bid_frame.add_button(
 
 # END BUTTONS SECTION
 
+# Build our status frame to show the game state.
+status_frame = StatusFrame(
+    text='Scoreboard', width=commands_width, height=commands_height
+)
+status_frame.show()
+
 GameState.COMMANDS_FRAME = commands_frame
 GameState.BID_FRAME = bid_frame
+GameState.STATUS_TEXT = status_text
+GameState.SCORE_FRAME = status_frame
 
 top.mainloop()

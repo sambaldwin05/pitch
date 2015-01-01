@@ -1,16 +1,14 @@
-from Tkinter import *
+import Tkinter as tk
 
-class ButtonFrame:
+
+class GuiFrame(object):
 
     # Configuration options for each LabelFrame
     # best to set these in the module you're using
     # to call this class.
     PROPAGATE = False
-    RELIEF = FLAT
-    LABELANCHOR = N
-    
-    # NOTE: these options should be overridden 
-    # in your calling code.
+    RELIEF = tk.FLAT
+    LABELANCHOR = tk.N
     WIDTH = 300
     HEIGHT = 500
 
@@ -18,25 +16,69 @@ class ButtonFrame:
     PARENT_WIDGET = None
     TK_ROOT = None
 
-    def __init__(self, text):
-        '''
-        NOTE: The child_frames of this frame are not children widgets
-        in the Tkinter sense, just in a menu sense.  All frames will
-        be Tkinter children of the PARENT_WIDGET specified above.
-        '''
-        
+    def __init__(self, text='Title Text', width=WIDTH, height=HEIGHT, 
+                 relief=RELIEF, labelanchor=LABELANCHOR, **kwargs):
         # Hold on the text in a separate var, for ease of use.
         self.text = text
 
         # The tkinter frame.
-        self.frame = LabelFrame(ButtonFrame.PARENT_WIDGET,
-                                text=text, 
-                                labelanchor=ButtonFrame.LABELANCHOR,
-                                relief=ButtonFrame.RELIEF,
-                                width=ButtonFrame.WIDTH, 
-                                height=ButtonFrame.HEIGHT)
+        self.frame = tk.LabelFrame(
+            GuiFrame.PARENT_WIDGET,
+            text=text, 
+            labelanchor=labelanchor,
+            relief=relief,
+            width=width, 
+            height=height
+        )
 
-        self.frame.grid_propagate(ButtonFrame.PROPAGATE)
+        self.frame.grid_propagate(GuiFrame.PROPAGATE)
+
+    def show(self):
+        self.frame.pack(side=tk.TOP)
+        self.update_gui()
+
+    def hide(self):
+        self.frame.pack_forget()
+        self.update_gui()
+
+    def update_gui(self):
+        GuiFrame.TK_ROOT.update_idletasks()
+
+
+class StatusFrame(GuiFrame):
+
+    def __init__(self, *args, **kwargs):
+        super(StatusFrame, self).__init__(*args, **kwargs)
+
+        # Set up our interior text.
+        self.status_text = tk.StringVar()
+        self.status_text.set('Default status.')
+        if 'status_text' in kwargs:
+            self.status_text.set(kwargs['status_text'])
+        
+        self.text_label = tk.Label(
+            self.frame, 
+            textvariable=self.status_text,
+            font=10
+        )
+
+    def show(self):
+        self.frame.pack(side=tk.BOTTOM, fill='both', expand='yes')
+        self.text_label.pack(fill='both')
+
+        # Force the screen to update.
+        GuiFrame.TK_ROOT.update_idletasks()
+
+
+class ButtonFrame(GuiFrame):
+
+    def __init__(self, *args, **kwargs):
+        '''
+        NOTE: The child_frames of this frame are not children widgets
+        in the Tkinter sense, just in a menu sense.  All frames will
+        be Tkinter children of the PARENT_WIDGET specified in GuiFrame.
+        '''
+        super(ButtonFrame, self).__init__(*args, **kwargs)
 
         self.buttons = []
 
@@ -46,17 +88,11 @@ class ButtonFrame:
 
     def show(self):
         self.show_buttons()
-        self.frame.pack(side=TOP)
-
-        # Force the screen to update.
-        ButtonFrame.TK_ROOT.update_idletasks()
+        super(ButtonFrame, self).show()
 
     def hide(self):
         self.hide_buttons()
-        self.frame.pack_forget()
-
-        # Force the screen to update.
-        ButtonFrame.TK_ROOT.update_idletasks()
+        super(ButtonFrame, self).hide()
 
     def show_child(self, child_index):
         self.hide()
@@ -92,9 +128,9 @@ class ButtonFrame:
         ''' Add a button to the end of the buttons list.
         NOTE: does not display said button. '''
         if command:
-            self.buttons.append(Button(self.frame, text=text, command=command))
+            self.buttons.append(tk.Button(self.frame, text=text, command=command))
         else:
-            self.buttons.append(Button(self.frame, text=text))
+            self.buttons.append(tk.Button(self.frame, text=text))
 
     def insert_button(self, index, text, command=None):
         ''' Insert a button at the specified index, 
@@ -125,7 +161,7 @@ class ButtonFrame:
         ''' Grid all the buttons associated with this frame. '''
         i = 0
         for button in self.buttons:
-            button.grid(row=i, sticky=W)
+            button.grid(row=i, sticky=tk.W)
             i = i + 1
 
     def hide_buttons(self):
@@ -135,11 +171,11 @@ class ButtonFrame:
 
     def disable_button(self, button_index):
         ''' Deactivate a button at a given index. '''
-        self.buttons[button_index].configure(state=DISABLED)
+        self.buttons[button_index].configure(state=tk.DISABLED)
 
     def enable_button(self, button_index):
         ''' Activate a button at a given index. '''
-        self.buttons[button_index].configure(state=NORMAL)
+        self.buttons[button_index].configure(state=tk.NORMAL)
 
     def disable_button_by_text(self, search_text):
         ''' Deactivate the first button with given text. '''
@@ -151,7 +187,7 @@ class ButtonFrame:
 
         # Deactivate it if found.
         if target_button:
-            target_button.configure(state=DISABLED)
+            target_button.configure(state=tk.DISABLED)
         else:
             print 'Could not find button with text "{0}".'.format(search_text)
 
@@ -165,6 +201,6 @@ class ButtonFrame:
 
         # Deactivate it if found.
         if target_button:
-            target_button.configure(state=NORMAL)
+            target_button.configure(state=tk.NORMAL)
         else:
             print 'Could not find button with text "{0}".'.format(search_text)

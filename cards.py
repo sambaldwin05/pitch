@@ -3,7 +3,9 @@ import sys
 import random
 import time
 
-from Tkinter import *
+# from Tkinter import *
+import Tkinter as tk
+
 import tkMessageBox as tk_msg_box
 
 
@@ -77,11 +79,11 @@ class Card:
         img_filename = self.suit + str(self.value) + '.gif'
 
         # Create the gif image.
-        self.photo_image = PhotoImage(
+        self.photo_image = tk.PhotoImage(
             file=os.path.join(Card.IMG_PATH, img_filename))
 
         self.image_shape = Card.CANVAS.create_image(
-            x, y, anchor=NW, image=self.photo_image)
+            x, y, anchor=tk.NW, image=self.photo_image)
 
         # Bind an event to the click.
         Card.CANVAS.tag_bind(self.image_shape, '<Button-1>', 
@@ -126,7 +128,7 @@ class Card:
         img_filename = Card.BACK_IMG_FILENAME
 
         # Create the gif image and assign it to the shape.
-        self.photo_image = PhotoImage(
+        self.photo_image = tk.PhotoImage(
             file=os.path.join(Card.IMG_PATH, img_filename)
         )
         Card.CANVAS.itemconfig(self.image_shape, image=self.photo_image)
@@ -137,7 +139,7 @@ class Card:
         img_filename = self.suit + str(self.value) + '.gif'
 
         # Create the gif image and assign it to the shape.
-        self.photo_image = PhotoImage(
+        self.photo_image = tk.PhotoImage(
             file=os.path.join(Card.IMG_PATH, img_filename))
         Card.CANVAS.itemconfig(self.image_shape, image=self.photo_image)
 
@@ -455,6 +457,7 @@ class GameState:
     STATUS_TEXT = None
     COMMANDS_FRAME = None
     BID_FRAME = None
+    SCORE_FRAME = None
 
     def __init__(self, canvas_width, canvas_height):
         # Create a reusable trick.
@@ -500,6 +503,7 @@ class GameState:
         high, low = [None, 0], [None, 14]
         game = [0, 0]
         points = [0, 0]
+        status_str = ''
 
         for i in range(0, len(self.players)):
             team_index = i % 2
@@ -517,7 +521,8 @@ class GameState:
                     
                     # Check for Jack.
                     if card.value == 11:
-                        print 'Jack taken by Team', team_index + 1
+                        status_str += \
+                            'T{0} takes jack'.format(team_index + 1)
                         points[team_index] += 1
 
                 # Tally points toward game.
@@ -525,43 +530,59 @@ class GameState:
                     game[team_index] += card.game_value()
 
         # Add game point - not awarded if tied.
-        print 'Team 1 Game Score:', game[0]
-        print 'Team 2 Game Score:', game[1]
+        status_str += '\nT1 Game Score: {0}'.format(game[0])
+        status_str += '\nT2 Game Score: {0}'.format(game[1])
 
         if game[0] > game[1]:
-            print 'Team 1 awarded Game Point.'
+            status_str += '\nT1 takes game'
             points[0] += 1
         elif game[0] < game[1]:
-            print 'Team 2 awarded Game Point.'
+            status_str += '\nT2 takes game'
             points[1] += 1
         else:
-            print 'No Game Point awarded.'
+            status_str += '\nNo game point'
 
-        print 'Team {0} takes high trump.'.format((high[0] % 2) + 1)
-        print 'Team {0} takes low trump.'.format((low[0] % 2) + 1)
+        status_str += '\nT{0} takes high'.format((high[0] % 2) + 1)
+        status_str += '\nT{0} takes low'.format((low[0] % 2) + 1)
 
         # Add high and low.
         points[(high[0] % 2)] += 1
         points[(low[0] % 2)] += 1
 
         # Check tallies against the bid.
-        if points[(self.bid[0] % 2)] < self.bid[1]:
-            points[(self.bid[0] % 2)] = (0 - self.bid[1])
+        bid_team_index = self.get_bid_owner_index() % 2
+        status_str += '\nBid {0} by T{1}'.format(
+            self.get_bid_amount(),
+            bid_team_index + 1
+        )
+        if points[bid_team_index] < self.get_bid_amount():
+            status_str += '\nT{0} set by {1}'.format(
+                bid_team_index + 1,
+                self.get_bid_amount()
+            )
+            points[bid_team_index] = (0 - self.get_bid_amount())
 
         # Assign points to teams.
         for i in range(0, len(self.score)):
             self.score[i] += points[i]
-            print 'Team {0} Hand Score: {1}'.format(i + 1, points[i])
-        print '--------------'
+            status_str += '\nT{0} Hand Score: {1}'.format(i + 1, points[i])
+        status_str += '\n--------------'
         for i in range(0, len(self.score)):
-            print 'Team {0} Total Score: {1}'.format(i + 1, self.score[i])
+            status_str += '\nT{0} Total Score: {1}'.format(i + 1, self.score[i])
+
+        self.SCORE_FRAME.status_text.set(status_str)
+
+        # Reset trump and bid.
+
 
         # TODO Check if victory conditions have been met.
-
 
         # Deal another hand if game continues.
         self.dealer_position = (self.dealer_position + 1) % 4
         self.deal_hands(self.dealer_position)
+
+        # Update the frame.
+        self.SCORE_FRAME.update_gui()
 
     def set_player_bid(self, player_index, bid):
         if bid:
@@ -577,8 +598,6 @@ class GameState:
             # Start new trick.
             self.BID_FRAME.hide()
             self.COMMANDS_FRAME.show()
-            self.trump = None
-            self.bid[1] = None
             self.trick.new_trick(self.bid[0])
         else:
             self.bid_position = (self.bid_position + 1) % 4
@@ -654,4 +673,13 @@ class GameState:
         self.deck.reset_deck()
         for player in self.players:
             player.reset_hand()
+        self.trump = None
+        self.bib = [None, None]
+
+    def get_bid_owner_index(self):
+        # Returns the player index of the bid owner.
+        return self.bid[0]
+
+    def get_bid_amount(self):
+        return self.bid[1]
 
