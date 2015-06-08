@@ -14,8 +14,8 @@ import sys
 
 import Tkinter as tk
 
-from gui import *
-from cards import *
+from gui import GuiFrame, ButtonFrame, StatusFrame
+from cards import Card, GameState
 
 
 # Application init section.
@@ -58,7 +58,6 @@ canvas.pack(side=tk.LEFT)
 # Set up the status bar.
 status_bar = tk.Message(top, textvariable=status_text, 
                         width=canvas_width + commands_width, anchor=tk.W)
-
 status_bar.pack(side=tk.LEFT)
 
 
